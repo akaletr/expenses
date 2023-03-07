@@ -2,8 +2,6 @@ package config
 
 import (
 	"flag"
-	"fmt"
-
 	"github.com/caarlos0/env/v6"
 )
 
@@ -40,12 +38,9 @@ func GetConfig() (Config, error) {
 		return Config{}, err
 	}
 
-	fmt.Println(cfg)
 	// читаем флаги, если есть - перезаписываем конфиг
 	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "base url")
 	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "host to listen on")
-	//flag.StringVar(&cfg.FileStoragePath, "f", cfg.FileStoragePath, "file path")
-	//flag.StringVar(&cfg.SecretKey, "k", cfg.SecretKey, "secret key")
 	flag.StringVar(&cfg.DatabaseDSN, "d", cfg.DatabaseDSN, "database connection string")
 	flag.Parse()
 
