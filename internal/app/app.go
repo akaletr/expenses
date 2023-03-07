@@ -1,20 +1,22 @@
 package app
 
-type expenses struct {
+import "cmd/main/main.go/internal/config"
+
+type app struct {
 }
 
-func New() App {
-	return &expenses{}
+func NewApp(cfg config.Config) App {
+	return &app{}
 }
 
-func (expenses *expenses) Init() error {
+func (app *app) Init() error {
 	return nil
 }
 
-func (expenses *expenses) Run() error {
+func (app *app) Start() error {
 	return nil
 }
 
-func (expenses *expenses) Stop() error {
+func (app *app) Stop() error {
 	return nil
 }
