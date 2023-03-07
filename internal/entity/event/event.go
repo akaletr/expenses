@@ -1,8 +1,9 @@
 package event
 
 import (
-	"cmd/main/main.go/internal/entity/category"
 	"gorm.io/gorm"
+
+	"cmd/main/main.go/internal/entity/category"
 )
 
 type Event struct {
@@ -25,5 +26,14 @@ func (event *Event) Register(conn *gorm.DB) error {
 		}
 	}
 
+	return nil
+}
+
+func (event *Event) Put(conn *gorm.DB) (uint, error) {
+	tx := conn.Create(event)
+	return event.ID, tx.Error
+}
+
+func (event *Event) Get(conn *gorm.DB) error {
 	return nil
 }

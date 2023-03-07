@@ -17,9 +17,16 @@ func (category *Category) Register(conn *gorm.DB) error {
 		if err != nil {
 			return err
 		}
-
-		//conn.Migrator().CreateConstraint(&category, "category_fk")
 	}
 
+	return nil
+}
+
+func (category *Category) Put(conn *gorm.DB) (uint, error) {
+	tx := conn.Create(category)
+	return category.ID, tx.Error
+}
+
+func (category *Category) Get(conn *gorm.DB) error {
 	return nil
 }

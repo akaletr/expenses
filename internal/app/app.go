@@ -1,6 +1,10 @@
 package app
 
 import (
+	"fmt"
+	"net/http"
+	"time"
+
 	"cmd/main/main.go/internal/config"
 	"cmd/main/main.go/internal/entity/category"
 	"cmd/main/main.go/internal/entity/event"
@@ -10,6 +14,7 @@ import (
 type app struct {
 	storage storage.Storage
 	cfg     config.Config
+	server  http.Server
 }
 
 func NewApp(cfg config.Config) (App, error) {
@@ -17,6 +22,7 @@ func NewApp(cfg config.Config) (App, error) {
 	if err != nil {
 		return nil, nil
 	}
+
 	return &app{
 		storage: db,
 		cfg:     cfg,
@@ -34,13 +40,22 @@ func (app *app) Init() error {
 		return err
 	}
 
+	app.server = http.Server{
+		Addr:              fmt.Sprintf(":%s", app.cfg.ServerPort),
+		Handler:           nil,
+		ReadTimeout:       time.Second * 15,
+		ReadHeaderTimeout: time.Second * 15,
+		WriteTimeout:      time.Second * 15,
+	}
+
 	return nil
 }
 
 func (app *app) Start() error {
-	return nil
+	return app.server.ListenAndServe()
 }
 
 func (app *app) Stop() error {
+	app.storage.Stop()
 	return nil
 }
