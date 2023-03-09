@@ -1,25 +1,46 @@
 package main
 
 import (
-	"fmt"
+	"log"
 
 	"cmd/main/main.go/internal/app"
+	"cmd/main/main.go/internal/config"
+
+	"github.com/joho/godotenv"
 )
 
-func main() {
-	server := app.New()
-	defer func() {
-		err := server.Stop()
-		fmt.Println(err)
-	}()
-
-	err := server.Init()
+func init() {
+	err := godotenv.Load()
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
+	}
+}
+
+func main() {
+	cfg, err := config.GetConfig()
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	err = server.Run()
+	myApp, err := app.NewApp(cfg)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
+	}
+
+	defer func() {
+		err = myApp.Stop()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	err = myApp.Init()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = myApp.Start()
+	if err != nil {
+		log.Fatal(err)
 	}
 }

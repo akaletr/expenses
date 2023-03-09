@@ -2,6 +2,6 @@ package app
 
 type App interface {
 	Init() error
-	Run() error
+	Start() error
 	Stop() error
 }
