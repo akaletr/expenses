@@ -22,11 +22,12 @@ func (category *Category) Register(conn *gorm.DB) error {
 	return nil
 }
 
-func (category *Category) Put(conn *gorm.DB) (uint, error) {
+func (category *Category) Put(conn *gorm.DB) error {
 	tx := conn.Create(category)
-	return category.ID, tx.Error
+	return tx.Error
 }
 
-func (category *Category) Get(conn *gorm.DB) error {
-	return nil
+func (category *Category) Get(conn *gorm.DB, id uint) error {
+	tx := conn.First(category, id)
+	return tx.Error
 }

@@ -3,6 +3,7 @@ package storage
 import (
 	"cmd/main/main.go/internal/config"
 	"cmd/main/main.go/internal/entity"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -27,8 +28,8 @@ func (storage *storage) Start(cfg config.Database) error {
 }
 
 func (storage *storage) Provide(entities ...entity.Entity) error {
-	for _, entity := range entities {
-		err := entity.Register(storage.conn)
+	for _, e := range entities {
+		err := e.Register(storage.conn)
 		if err != nil {
 			return err
 		}
@@ -47,4 +48,8 @@ func (storage *storage) Put(entity entity.Entity) (uint, error) {
 
 func (storage *storage) Get(entity entity.Entity, id uint) (entity.Entity, error) {
 	return entity, nil
+}
+
+func (storage *storage) GetDB() *gorm.DB {
+	return storage.conn
 }
