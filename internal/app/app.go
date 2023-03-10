@@ -1,14 +1,19 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"cmd/main/main.go/internal/config"
 	"cmd/main/main.go/internal/entity/category"
 	"cmd/main/main.go/internal/entity/event"
 	"cmd/main/main.go/internal/storage"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type app struct {
@@ -20,7 +25,7 @@ type app struct {
 func NewApp(cfg config.Config) (App, error) {
 	db, err := storage.New()
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	return &app{
@@ -48,6 +53,15 @@ func (app *app) Init() error {
 		WriteTimeout:      time.Second * 15,
 	}
 
+	router := chi.NewRouter()
+
+	router.Get("/category/{id}", app.getCategory)
+	router.Put("/category", app.putCategory)
+
+	router.Get("/event/{id}", app.getEvent)
+	router.Put("/event", app.putEvent)
+
+	app.server.Handler = router
 	return nil
 }
 
@@ -58,4 +72,114 @@ func (app *app) Start() error {
 func (app *app) Stop() error {
 	app.storage.Stop()
 	return nil
+}
+
+func (app *app) getCategory(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	c := category.Category{}
+
+	err = c.Get(app.storage.GetDB(), uint(idInt))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	data, err := json.Marshal(c)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(data)
+}
+
+func (app *app) putCategory(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	c := category.Category{}
+
+	err = json.Unmarshal(body, &c)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	err = c.Put(app.storage.GetDB())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.Write([]byte("ok"))
+}
+
+func (app *app) getEvent(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	e := event.Event{}
+
+	err = e.Get(app.storage.GetDB(), uint(idInt))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	data, err := json.Marshal(e)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(data)
+}
+
+func (app *app) putEvent(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	e := event.Event{}
+
+	err = json.Unmarshal(body, &e)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	err = e.Put(app.storage.GetDB())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.Write([]byte("ok"))
 }
