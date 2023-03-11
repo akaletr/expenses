@@ -56,9 +56,11 @@ func (app *app) Init() error {
 	router := chi.NewRouter()
 
 	router.Get("/category/{id}", app.getCategory)
+	router.Get("/categories", app.getCategories)
 	router.Put("/category", app.putCategory)
 
 	router.Get("/event/{id}", app.getEvent)
+	router.Get("/events", app.getEvents)
 	router.Put("/event", app.putEvent)
 
 	app.server.Handler = router
@@ -75,6 +77,9 @@ func (app *app) Stop() error {
 }
 
 func (app *app) getCategory(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	fmt.Println("GET!")
 	id := chi.URLParam(r, "id")
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
@@ -102,7 +107,25 @@ func (app *app) getCategory(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
+func (app *app) getCategories(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	var c []category.Category
+	app.storage.GetDB().Find(&c)
+
+	data, err := json.Marshal(c)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(data)
+}
+
 func (app *app) putCategory(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "null")
+	fmt.Println("WORKS!")
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -174,6 +197,7 @@ func (app *app) putEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println(e)
 	err = e.Put(app.storage.GetDB())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -182,4 +206,20 @@ func (app *app) putEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte("ok"))
+}
+
+func (app *app) getEvents(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	var c []event.Event
+	app.storage.GetDB().Order("updated_at DESC").Find(&c)
+
+	data, err := json.Marshal(c)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(data)
 }
