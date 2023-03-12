@@ -8,6 +8,11 @@ import (
 type Config struct {
 	Server
 	Database
+	Auth
+}
+
+type Auth struct {
+	SecretKey string `env:"SECRET_KEY"`
 }
 
 type Server struct {
@@ -30,6 +35,7 @@ func GetConfig() (Config, error) {
 			BaseURL:       "http://localhost:8080",
 		},
 		Database{DatabaseDSN: ""},
+		Auth{SecretKey: ""},
 	}
 
 	// берем конфиг из окружения
@@ -40,6 +46,7 @@ func GetConfig() (Config, error) {
 
 	// читаем флаги, если есть - перезаписываем конфиг
 	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "base url")
+	flag.StringVar(&cfg.SecretKey, "s", cfg.BaseURL, "secret key")
 	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "host to listen on")
 	flag.StringVar(&cfg.DatabaseDSN, "d", cfg.DatabaseDSN, "database connection string")
 	flag.Parse()

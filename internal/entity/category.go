@@ -1,4 +1,4 @@
-package category
+package entity
 
 import (
 	"gorm.io/gorm"
@@ -6,8 +6,10 @@ import (
 
 type Category struct {
 	gorm.Model
-	Title       string
-	Description string
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	UserID      uint   `json:"user_id"`
+	User        User   `gorm:"foreignKey:UserID""`
 }
 
 func (category *Category) Register(conn *gorm.DB) error {

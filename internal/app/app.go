@@ -4,19 +4,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
 
+	"cmd/main/main.go/internal/auth"
 	"cmd/main/main.go/internal/config"
-	"cmd/main/main.go/internal/entity/category"
-	"cmd/main/main.go/internal/entity/event"
+	"cmd/main/main.go/internal/entity"
 	"cmd/main/main.go/internal/storage"
 
 	"github.com/go-chi/chi/v5"
 )
 
 type app struct {
+	auth    auth.Auth
 	storage storage.Storage
 	cfg     config.Config
 	server  http.Server
@@ -31,6 +33,7 @@ func NewApp(cfg config.Config) (App, error) {
 	return &app{
 		storage: db,
 		cfg:     cfg,
+		auth:    auth.New(cfg.SecretKey),
 	}, nil
 }
 
@@ -40,7 +43,12 @@ func (app *app) Init() error {
 		return err
 	}
 
-	err = app.storage.Provide(&category.Category{}, &event.Event{})
+	err = app.storage.Provide(
+		&entity.Wallet{},
+		&entity.User{},
+		&entity.Category{},
+		&entity.Event{},
+	)
 	if err != nil {
 		return err
 	}
@@ -54,11 +62,14 @@ func (app *app) Init() error {
 	}
 
 	router := chi.NewRouter()
+	router.Use(app.auth.CookieHandler)
 
 	router.Get("/category/{id}", app.getCategory)
+	router.Get("/categories", app.getCategories)
 	router.Put("/category", app.putCategory)
 
 	router.Get("/event/{id}", app.getEvent)
+	router.Get("/events", app.getEvents)
 	router.Put("/event", app.putEvent)
 
 	app.server.Handler = router
@@ -82,7 +93,7 @@ func (app *app) getCategory(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-	c := category.Category{}
+	c := entity.Category{}
 
 	err = c.Get(app.storage.GetDB(), uint(idInt))
 	if err != nil {
@@ -102,7 +113,44 @@ func (app *app) getCategory(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
+func (app *app) getCategories(w http.ResponseWriter, r *http.Request) {
+	cc, err := r.Cookie("user")
+	if err != nil {
+		cc = &http.Cookie{}
+	}
+
+	id, err := app.auth.GetID(cc)
+	if err != nil {
+		log.Println(err)
+	}
+
+	fmt.Println("________", id)
+	time.Sleep(time.Second / 2)
+	var c []entity.Category
+	app.storage.GetDB().Where("user_id = ?", id).Find(&c)
+
+	data, err := json.Marshal(c)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(data)
+}
+
 func (app *app) putCategory(w http.ResponseWriter, r *http.Request) {
+	cc, err := r.Cookie("user")
+	if err != nil {
+		cc = &http.Cookie{}
+	}
+
+	id, err := app.auth.GetID(cc)
+	if err != nil {
+		log.Println(err)
+	}
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -110,7 +158,11 @@ func (app *app) putCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c := category.Category{}
+	c := entity.Category{}
+
+	i, _ := strconv.Atoi(id)
+
+	c.UserID = uint(i)
 
 	err = json.Unmarshal(body, &c)
 	if err != nil {
@@ -137,7 +189,7 @@ func (app *app) getEvent(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-	e := event.Event{}
+	e := entity.Event{}
 
 	err = e.Get(app.storage.GetDB(), uint(idInt))
 	if err != nil {
@@ -165,7 +217,7 @@ func (app *app) putEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	e := event.Event{}
+	e := entity.Event{}
 
 	err = json.Unmarshal(body, &e)
 	if err != nil {
@@ -174,6 +226,7 @@ func (app *app) putEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println(e)
 	err = e.Put(app.storage.GetDB())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -182,4 +235,19 @@ func (app *app) putEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte("ok"))
+}
+
+func (app *app) getEvents(w http.ResponseWriter, r *http.Request) {
+	var c []entity.Event
+	app.storage.GetDB().Order("updated_at DESC").Find(&c)
+
+	data, err := json.Marshal(c)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(data)
 }
