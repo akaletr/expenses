@@ -1,17 +1,15 @@
-package user
+package entity
 
 import (
-	"cmd/main/main.go/internal/entity/wallet"
-
 	"gorm.io/gorm"
 )
 
 type User struct {
 	gorm.Model
-	WalletID  uint          `json:"wallet_id"`
-	Wallet    wallet.Wallet `gorm:"foreignKey:WalletID"`
-	FirstName string        `json:"first_name"`
-	LastName  string        `json:"last_name"`
+	WalletID  uint   `json:"wallet_id"`
+	Wallet    Wallet `gorm:"foreignKey:WalletID"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
 }
 
 func (user *User) Register(conn *gorm.DB) error {
@@ -22,11 +20,6 @@ func (user *User) Register(conn *gorm.DB) error {
 			return err
 		}
 	}
-	user.FirstName = "Dmitrii"
-	user.LastName = "Poliakov"
-	user.WalletID = 1
-	conn.Create(user)
-
 	return nil
 }
 

@@ -11,10 +11,7 @@ import (
 
 	"cmd/main/main.go/internal/auth"
 	"cmd/main/main.go/internal/config"
-	"cmd/main/main.go/internal/entity/category"
-	"cmd/main/main.go/internal/entity/event"
-	"cmd/main/main.go/internal/entity/user"
-	"cmd/main/main.go/internal/entity/wallet"
+	"cmd/main/main.go/internal/entity"
 	"cmd/main/main.go/internal/storage"
 
 	"github.com/go-chi/chi/v5"
@@ -47,10 +44,10 @@ func (app *app) Init() error {
 	}
 
 	err = app.storage.Provide(
-		&wallet.Wallet{},
-		&user.User{},
-		&category.Category{},
-		&event.Event{},
+		&entity.Wallet{},
+		&entity.User{},
+		&entity.Category{},
+		&entity.Event{},
 	)
 	if err != nil {
 		return err
@@ -96,7 +93,7 @@ func (app *app) getCategory(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-	c := category.Category{}
+	c := entity.Category{}
 
 	err = c.Get(app.storage.GetDB(), uint(idInt))
 	if err != nil {
@@ -129,8 +126,8 @@ func (app *app) getCategories(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("________", id)
 	time.Sleep(time.Second / 2)
-	var c []category.Category
-	app.storage.GetDB().Where("user_id = ?", 2).Find(&c)
+	var c []entity.Category
+	app.storage.GetDB().Where("user_id = ?", id).Find(&c)
 
 	data, err := json.Marshal(c)
 	if err != nil {
@@ -144,6 +141,16 @@ func (app *app) getCategories(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *app) putCategory(w http.ResponseWriter, r *http.Request) {
+	cc, err := r.Cookie("user")
+	if err != nil {
+		cc = &http.Cookie{}
+	}
+
+	id, err := app.auth.GetID(cc)
+	if err != nil {
+		log.Println(err)
+	}
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -151,7 +158,11 @@ func (app *app) putCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c := category.Category{}
+	c := entity.Category{}
+
+	i, _ := strconv.Atoi(id)
+
+	c.UserID = uint(i)
 
 	err = json.Unmarshal(body, &c)
 	if err != nil {
@@ -178,7 +189,7 @@ func (app *app) getEvent(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-	e := event.Event{}
+	e := entity.Event{}
 
 	err = e.Get(app.storage.GetDB(), uint(idInt))
 	if err != nil {
@@ -206,7 +217,7 @@ func (app *app) putEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	e := event.Event{}
+	e := entity.Event{}
 
 	err = json.Unmarshal(body, &e)
 	if err != nil {
@@ -227,7 +238,7 @@ func (app *app) putEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *app) getEvents(w http.ResponseWriter, r *http.Request) {
-	var c []event.Event
+	var c []entity.Event
 	app.storage.GetDB().Order("updated_at DESC").Find(&c)
 
 	data, err := json.Marshal(c)

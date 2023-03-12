@@ -1,16 +1,15 @@
-package category
+package entity
 
 import (
-	"cmd/main/main.go/internal/entity/user"
 	"gorm.io/gorm"
 )
 
 type Category struct {
 	gorm.Model
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	UserID      uint      `json:"user_id"`
-	User        user.User `gorm:"foreignKey:UserID""`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	UserID      uint   `json:"user_id"`
+	User        User   `gorm:"foreignKey:UserID""`
 }
 
 func (category *Category) Register(conn *gorm.DB) error {

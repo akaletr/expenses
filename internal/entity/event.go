@@ -1,17 +1,15 @@
-package event
+package entity
 
 import (
-	"cmd/main/main.go/internal/entity/category"
-
 	"gorm.io/gorm"
 )
 
 type Event struct {
 	gorm.Model
-	CategoryID  uint              `json:"category_id"`
-	Category    category.Category `gorm:"foreignKey:CategoryID"`
-	Description string            `json:"description"`
-	Sum         int               `json:"sum"`
+	CategoryID  uint     `json:"category_id"`
+	Category    Category `gorm:"foreignKey:CategoryID"`
+	Description string   `json:"description"`
+	Sum         int      `json:"sum"`
 }
 
 func (event *Event) Register(conn *gorm.DB) error {

@@ -1,4 +1,4 @@
-package wallet
+package entity
 
 import (
 	"gorm.io/gorm"
