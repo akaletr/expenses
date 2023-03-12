@@ -1,6 +1,9 @@
-package entity
+package wallet
 
 import (
+	"cmd/main/main.go/internal/jsonrpc"
+	"encoding/json"
+	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -30,4 +33,9 @@ func (wallet *Wallet) Put(conn *gorm.DB) error {
 func (wallet *Wallet) Get(conn *gorm.DB, id uint) error {
 	tx := conn.First(wallet, id)
 	return tx.Error
+}
+
+func GetWallet(opt jsonrpc.Options) (json.RawMessage, error) {
+	fmt.Println(opt.Params)
+	return []byte{}, nil
 }

@@ -27,7 +27,7 @@ func (storage *storage) Start(cfg config.Database) error {
 	return nil
 }
 
-func (storage *storage) Provide(entities ...entity.Entity) error {
+func (storage *storage) Register(entities ...entity.Entity) error {
 	for _, e := range entities {
 		err := e.Register(storage.conn)
 		if err != nil {
