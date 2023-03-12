@@ -9,7 +9,7 @@ import (
 
 type Storage interface {
 	Start(cfg config.Database) error
-	Provide(entities ...entity.Entity) error
+	Register(entities ...entity.Entity) error
 	Stop()
 	GetDB() *gorm.DB
 
