@@ -9,7 +9,7 @@ import (
 type Event struct {
 	gorm.Model
 	CategoryID  uint              `json:"category_id"`
-	category    category.Category `gorm:"foreignKey:CategoryID"`
+	Category    category.Category `gorm:"foreignKey:CategoryID"`
 	Description string            `json:"description"`
 	Sum         int               `json:"sum"`
 }

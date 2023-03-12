@@ -4,19 +4,24 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
 
+	"cmd/main/main.go/internal/auth"
 	"cmd/main/main.go/internal/config"
 	"cmd/main/main.go/internal/entity/category"
 	"cmd/main/main.go/internal/entity/event"
+	"cmd/main/main.go/internal/entity/user"
+	"cmd/main/main.go/internal/entity/wallet"
 	"cmd/main/main.go/internal/storage"
 
 	"github.com/go-chi/chi/v5"
 )
 
 type app struct {
+	auth    auth.Auth
 	storage storage.Storage
 	cfg     config.Config
 	server  http.Server
@@ -31,6 +36,7 @@ func NewApp(cfg config.Config) (App, error) {
 	return &app{
 		storage: db,
 		cfg:     cfg,
+		auth:    auth.New(cfg.SecretKey),
 	}, nil
 }
 
@@ -40,7 +46,12 @@ func (app *app) Init() error {
 		return err
 	}
 
-	err = app.storage.Provide(&category.Category{}, &event.Event{})
+	err = app.storage.Provide(
+		&wallet.Wallet{},
+		&user.User{},
+		&category.Category{},
+		&event.Event{},
+	)
 	if err != nil {
 		return err
 	}
@@ -54,6 +65,7 @@ func (app *app) Init() error {
 	}
 
 	router := chi.NewRouter()
+	router.Use(app.auth.CookieHandler)
 
 	router.Get("/category/{id}", app.getCategory)
 	router.Get("/categories", app.getCategories)
@@ -77,9 +89,6 @@ func (app *app) Stop() error {
 }
 
 func (app *app) getCategory(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-
-	fmt.Println("GET!")
 	id := chi.URLParam(r, "id")
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
@@ -108,9 +117,20 @@ func (app *app) getCategory(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *app) getCategories(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	cc, err := r.Cookie("user")
+	if err != nil {
+		cc = &http.Cookie{}
+	}
+
+	id, err := app.auth.GetID(cc)
+	if err != nil {
+		log.Println(err)
+	}
+
+	fmt.Println("________", id)
+	time.Sleep(time.Second / 2)
 	var c []category.Category
-	app.storage.GetDB().Find(&c)
+	app.storage.GetDB().Where("user_id = ?", 2).Find(&c)
 
 	data, err := json.Marshal(c)
 	if err != nil {
@@ -124,8 +144,6 @@ func (app *app) getCategories(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *app) putCategory(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "null")
-	fmt.Println("WORKS!")
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -209,7 +227,6 @@ func (app *app) putEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *app) getEvents(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	var c []event.Event
 	app.storage.GetDB().Order("updated_at DESC").Find(&c)
 
