@@ -15,22 +15,16 @@ type User struct {
 }
 
 func (user *User) Register(conn *gorm.DB) error {
-
 	if !conn.Migrator().HasTable(&user) {
 		err := conn.Migrator().CreateTable(&user)
 		if err != nil {
 			return err
 		}
 	}
+
+	err := conn.Migrator().AutoMigrate(user)
+	if err != nil {
+		return err
+	}
 	return nil
-}
-
-func (user *User) Put(conn *gorm.DB) error {
-	tx := conn.Create(user)
-	return tx.Error
-}
-
-func (user *User) Get(conn *gorm.DB, id uint) error {
-	tx := conn.First(user, id)
-	return tx.Error
 }

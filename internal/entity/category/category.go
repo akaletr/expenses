@@ -12,29 +12,21 @@ type Category struct {
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
 	UserID      uint      `json:"user_id"`
-	User        user.User `gorm:"foreignKey:UserID""`
+	User        user.User `gorm:"foreignKey:UserID"`
 }
 
 func (category *Category) Register(conn *gorm.DB) error {
-
 	if !conn.Migrator().HasTable(&category) {
 		err := conn.Migrator().CreateTable(&category)
 		if err != nil {
 			return err
 		}
 	}
-
+	err := conn.Migrator().AutoMigrate(category)
+	if err != nil {
+		return err
+	}
 	return nil
-}
-
-func (category *Category) Put(conn *gorm.DB) error {
-	tx := conn.Create(category)
-	return tx.Error
-}
-
-func (category *Category) Get(conn *gorm.DB, id uint) error {
-	tx := conn.First(category, id)
-	return tx.Error
 }
 
 func Get(opt jsonrpc.Options) (json.RawMessage, error) {
@@ -51,11 +43,22 @@ func GetMany(opt jsonrpc.Options) (json.RawMessage, error) {
 
 func Create(opt jsonrpc.Options) (json.RawMessage, error) {
 	var category Category
-	err := json.Unmarshal([]byte(opt.Params), &category)
+	err := json.Unmarshal(opt.Params, &category)
 	if err != nil {
 		return nil, err
 	}
 
 	opt.Conn.Create(&category)
+	return json.Marshal(category.ID)
+}
+
+func Delete(opt jsonrpc.Options) (json.RawMessage, error) {
+	var category Category
+	err := json.Unmarshal(opt.Params, &category)
+	if err != nil {
+		return nil, err
+	}
+
+	opt.Conn.Delete(&category, category.ID)
 	return json.Marshal(category.ID)
 }

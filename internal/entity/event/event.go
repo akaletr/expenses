@@ -14,23 +14,17 @@ type Event struct {
 }
 
 func (event *Event) Register(conn *gorm.DB) error {
-
 	if !conn.Migrator().HasTable(&event) {
 		err := conn.Migrator().CreateTable(&event)
 		if err != nil {
 			return err
 		}
+		return nil
 	}
 
+	err := conn.Migrator().AutoMigrate(event)
+	if err != nil {
+		return err
+	}
 	return nil
-}
-
-func (event *Event) Put(conn *gorm.DB) error {
-	tx := conn.Create(event)
-	return tx.Error
-}
-
-func (event *Event) Get(conn *gorm.DB, id uint) error {
-	tx := conn.First(event, id)
-	return tx.Error
 }

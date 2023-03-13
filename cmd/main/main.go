@@ -22,10 +22,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	myApp, err := app.NewApp(cfg)
-	if err != nil {
-		log.Fatal(err)
-	}
+	myApp := app.NewApp(cfg)
 
 	defer func() {
 		err = myApp.Stop()
