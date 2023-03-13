@@ -50,6 +50,7 @@ func Create(opt jsonrpc.Options) (json.RawMessage, error) {
 		return nil, err
 	}
 
+	category.UserID = opt.UserId
 	opt.Conn.Create(&category)
 	return json.Marshal(category.ID)
 }

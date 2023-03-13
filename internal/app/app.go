@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -91,15 +92,14 @@ func (app *app) init() error {
 
 	app.server = http.Server{
 		Addr:              fmt.Sprintf(":%s", app.cfg.ServerPort),
-		Handler:           nil,
 		ReadTimeout:       time.Second * 15,
 		ReadHeaderTimeout: time.Second * 15,
 		WriteTimeout:      time.Second * 15,
 	}
 
 	router := chi.NewRouter()
-	router.Use(app.auth.CookieHandler)
-	router.Post("/", app.handleRequest)
+	router.Post("/v1", app.handleRequest)
+	router.Post("/v1/auth", app.authn)
 
 	app.server.Handler = router
 	return nil
@@ -133,6 +133,7 @@ func (app *app) getMethod(name string) (jsonrpc.Method, error) {
 }
 
 func (app *app) handleRequest(w http.ResponseWriter, r *http.Request) {
+
 	response := jsonrpc.Response{}
 	defer func() {
 		data, err := json.Marshal(response)
@@ -142,6 +143,17 @@ func (app *app) handleRequest(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(data)
 	}()
+
+	idCookie, err := r.Cookie("user")
+	if err != nil {
+		response.Error = err.Error()
+		return
+	}
+	id, err := strconv.Atoi(idCookie.Value)
+	if err != nil {
+		response.Error = err.Error()
+		return
+	}
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -163,6 +175,7 @@ func (app *app) handleRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	options := jsonrpc.Options{
+		UserId: uint(id),
 		Conn:   app.storage.GetDB(),
 		Params: request.Params,
 	}
@@ -175,4 +188,34 @@ func (app *app) handleRequest(w http.ResponseWriter, r *http.Request) {
 
 	response.ID = request.ID
 	response.Result = result
+}
+
+func (app *app) authn(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	conn := app.storage.GetDB()
+	var candidate user.User
+	err = json.Unmarshal(body, &candidate)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	tx := conn.Create(&candidate)
+	if tx.Error != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	cookie := &http.Cookie{
+		Name:  "user",
+		Value: strconv.Itoa(int(candidate.ID)),
+		Path:  "/",
+	}
+	http.SetCookie(w, cookie)
+	r.AddCookie(cookie)
 }

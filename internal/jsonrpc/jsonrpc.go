@@ -20,6 +20,7 @@ type Response struct {
 
 type Options struct {
 	Conn   *gorm.DB
+	UserId uint
 	Params json.RawMessage
 }
 
