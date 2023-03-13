@@ -1,7 +1,11 @@
 package event
 
 import (
+	"encoding/json"
+
 	"cmd/main/main.go/internal/entity/category"
+	"cmd/main/main.go/internal/jsonrpc"
+
 	"gorm.io/gorm"
 )
 
@@ -14,23 +18,51 @@ type Event struct {
 }
 
 func (event *Event) Register(conn *gorm.DB) error {
-
 	if !conn.Migrator().HasTable(&event) {
 		err := conn.Migrator().CreateTable(&event)
 		if err != nil {
 			return err
 		}
+		return nil
 	}
 
+	err := conn.Migrator().AutoMigrate(event)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func (event *Event) Put(conn *gorm.DB) error {
-	tx := conn.Create(event)
-	return tx.Error
+func Get(opt jsonrpc.Options) (json.RawMessage, error) {
+	var event Event
+	opt.Conn.First(&event, 1)
+	return json.Marshal(event)
 }
 
-func (event *Event) Get(conn *gorm.DB, id uint) error {
-	tx := conn.First(event, id)
-	return tx.Error
+func GetMany(opt jsonrpc.Options) (json.RawMessage, error) {
+	var event []Event
+	opt.Conn.Find(&event)
+	return json.Marshal(event)
+}
+
+func Create(opt jsonrpc.Options) (json.RawMessage, error) {
+	var event Event
+	err := json.Unmarshal(opt.Params, &event)
+	if err != nil {
+		return nil, err
+	}
+
+	opt.Conn.Create(&event)
+	return json.Marshal(event.ID)
+}
+
+func Delete(opt jsonrpc.Options) (json.RawMessage, error) {
+	var event Event
+	err := json.Unmarshal(opt.Params, &event)
+	if err != nil {
+		return nil, err
+	}
+
+	opt.Conn.Delete(&event, event.ID)
+	return json.Marshal(event.ID)
 }

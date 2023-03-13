@@ -22,10 +22,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	myApp, err := app.NewApp(cfg)
-	if err != nil {
-		log.Fatal(err)
-	}
+	myApp := app.NewApp(cfg)
 
 	defer func() {
 		err = myApp.Stop()
@@ -33,11 +30,6 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
-
-	err = myApp.Init()
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	err = myApp.Start()
 	if err != nil {

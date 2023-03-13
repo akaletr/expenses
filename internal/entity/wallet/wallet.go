@@ -1,9 +1,10 @@
 package wallet
 
 import (
-	"cmd/main/main.go/internal/jsonrpc"
 	"encoding/json"
-	"fmt"
+
+	"cmd/main/main.go/internal/jsonrpc"
+
 	"gorm.io/gorm"
 )
 
@@ -14,7 +15,6 @@ type Wallet struct {
 }
 
 func (wallet *Wallet) Register(conn *gorm.DB) error {
-
 	if !conn.Migrator().HasTable(&wallet) {
 		err := conn.Migrator().CreateTable(&wallet)
 		if err != nil {
@@ -22,20 +22,43 @@ func (wallet *Wallet) Register(conn *gorm.DB) error {
 		}
 	}
 
+	err := conn.Migrator().AutoMigrate(wallet)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func (wallet *Wallet) Put(conn *gorm.DB) error {
-	tx := conn.Create(wallet)
-	return tx.Error
+func Get(opt jsonrpc.Options) (json.RawMessage, error) {
+	var wallet Wallet
+	opt.Conn.First(&wallet, 1)
+	return json.Marshal(wallet)
 }
 
-func (wallet *Wallet) Get(conn *gorm.DB, id uint) error {
-	tx := conn.First(wallet, id)
-	return tx.Error
+func GetMany(opt jsonrpc.Options) (json.RawMessage, error) {
+	var wallet []Wallet
+	opt.Conn.Find(&wallet)
+	return json.Marshal(wallet)
 }
 
-func GetWallet(opt jsonrpc.Options) (json.RawMessage, error) {
-	fmt.Println(opt.Params)
-	return []byte{}, nil
+func Create(opt jsonrpc.Options) (json.RawMessage, error) {
+	var wallet Wallet
+	err := json.Unmarshal(opt.Params, &wallet)
+	if err != nil {
+		return nil, err
+	}
+
+	opt.Conn.Create(&wallet)
+	return json.Marshal(wallet.ID)
+}
+
+func Delete(opt jsonrpc.Options) (json.RawMessage, error) {
+	var wallet Wallet
+	err := json.Unmarshal(opt.Params, &wallet)
+	if err != nil {
+		return nil, err
+	}
+
+	opt.Conn.Delete(&wallet, wallet.ID)
+	return json.Marshal(wallet.ID)
 }
