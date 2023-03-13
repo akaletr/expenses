@@ -31,11 +31,6 @@ func main() {
 		}
 	}()
 
-	err = myApp.Init()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	err = myApp.Start()
 	if err != nil {
 		log.Fatal(err)

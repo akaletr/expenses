@@ -39,14 +39,14 @@ func NewApp(cfg config.Config) App {
 	}
 }
 
-func (app *app) Register(name string, method jsonrpc.Method) {
+func (app *app) register(name string, method jsonrpc.Method) {
 	app.mu.Lock()
 	defer app.mu.Unlock()
 
 	app.handlers[strings.ToLower(name)] = method
 }
 
-func (app *app) Init() error {
+func (app *app) init() error {
 	db, err := storage.New()
 	if err != nil {
 		return err
@@ -54,6 +54,7 @@ func (app *app) Init() error {
 	app.storage = db
 
 	err = app.storage.Start(app.cfg.Database)
+
 	if err != nil {
 		return err
 	}
@@ -68,15 +69,25 @@ func (app *app) Init() error {
 		return err
 	}
 
-	app.Register("getWallet", wallet.GetWallet)
-	app.Register("getUser", wallet.GetWallet)
+	app.register("category.get", category.Get)
+	app.register("category.getMany", category.GetMany)
+	app.register("category.create", category.Create)
+	app.register("category.delete", category.Delete)
 
-	app.Register("category.get", category.Get)
-	app.Register("category.getMany", category.GetMany)
-	app.Register("category.create", category.Create)
-	app.Register("category.delete", category.Delete)
+	app.register("event.get", event.Get)
+	app.register("event.getMany", event.GetMany)
+	app.register("event.create", event.Create)
+	app.register("event.delete", event.Delete)
 
-	app.Register("getEvent", wallet.GetWallet)
+	app.register("wallet.get", wallet.Get)
+	app.register("wallet.getMany", wallet.GetMany)
+	app.register("wallet.create", wallet.Create)
+	app.register("wallet.delete", wallet.Delete)
+
+	app.register("user.get", user.Get)
+	app.register("user.getMany", user.GetMany)
+	app.register("user.create", user.Create)
+	app.register("user.delete", user.Delete)
 
 	app.server = http.Server{
 		Addr:              fmt.Sprintf(":%s", app.cfg.ServerPort),
@@ -95,6 +106,12 @@ func (app *app) Init() error {
 }
 
 func (app *app) Start() error {
+	err := app.init()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Server started at port:", app.cfg.ServerPort)
 	return app.server.ListenAndServe()
 }
 

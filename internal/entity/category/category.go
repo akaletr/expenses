@@ -1,9 +1,11 @@
 package category
 
 import (
+	"encoding/json"
+
 	"cmd/main/main.go/internal/entity/user"
 	"cmd/main/main.go/internal/jsonrpc"
-	"encoding/json"
+
 	"gorm.io/gorm"
 )
 
