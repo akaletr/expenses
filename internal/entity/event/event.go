@@ -1,10 +1,10 @@
 package event
 
 import (
-	"cmd/main/main.go/internal/entity/user"
 	"encoding/json"
 
 	"cmd/main/main.go/internal/entity/category"
+	"cmd/main/main.go/internal/entity/user"
 	"cmd/main/main.go/internal/jsonrpc"
 
 	"gorm.io/gorm"

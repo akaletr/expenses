@@ -39,7 +39,7 @@ func Get(opt jsonrpc.Options) (json.RawMessage, error) {
 
 func GetMany(opt jsonrpc.Options) (json.RawMessage, error) {
 	var category []Category
-	opt.Conn.Find(&category)
+	opt.Conn.Where("user_id = ?", opt.UserId).Find(&category)
 	return json.Marshal(category)
 }
 
