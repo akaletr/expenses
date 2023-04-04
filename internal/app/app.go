@@ -136,10 +136,9 @@ func (app *app) getMethod(name string) (jsonrpc.Method, error) {
 }
 
 func (app *app) handleRequest(w http.ResponseWriter, r *http.Request) {
-	time.Sleep(time.Millisecond * 300)
 	response := jsonrpc.Response{}
 
-	fmt.Println("REQUEST")
+	fmt.Println("sdklfjalsdkjf")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", " GET, PUT, POST, DELETE, OPTIONS")
 

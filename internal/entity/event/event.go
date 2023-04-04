@@ -2,6 +2,7 @@ package event
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"cmd/main/main.go/internal/entity/category"
 	"cmd/main/main.go/internal/entity/user"
@@ -57,6 +58,7 @@ func Create(opt jsonrpc.Options) (json.RawMessage, error) {
 	}
 
 	event.UserID = opt.UserId
+	fmt.Println(event.Sum)
 	opt.Conn.Create(&event)
 	return json.Marshal(event.ID)
 }
