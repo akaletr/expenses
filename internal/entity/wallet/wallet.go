@@ -31,7 +31,11 @@ func (wallet *Wallet) Register(conn *gorm.DB) error {
 
 func Get(opt jsonrpc.Options) (json.RawMessage, error) {
 	var wallet Wallet
-	opt.Conn.First(&wallet, 1)
+	err := json.Unmarshal(opt.Params, &wallet)
+	if err != nil {
+		return nil, err
+	}
+	opt.Conn.First(&wallet, wallet.ID)
 	return json.Marshal(wallet)
 }
 

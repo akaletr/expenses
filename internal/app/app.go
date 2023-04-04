@@ -1,6 +1,7 @@
 package app
 
 import (
+	"cmd/main/main.go/internal/gziper"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -98,6 +99,8 @@ func (app *app) init() error {
 	}
 
 	router := chi.NewRouter()
+	router.Use(gziper.GzipCompression)
+
 	router.Post("/v1", app.handleRequest)
 	router.Post("/v1/auth", app.authn)
 
@@ -133,13 +136,18 @@ func (app *app) getMethod(name string) (jsonrpc.Method, error) {
 }
 
 func (app *app) handleRequest(w http.ResponseWriter, r *http.Request) {
-
 	response := jsonrpc.Response{}
+
+	fmt.Println("sdklfjalsdkjf")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", " GET, PUT, POST, DELETE, OPTIONS")
+
 	defer func() {
 		data, err := json.Marshal(response)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
+
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(data)
 	}()
@@ -173,7 +181,6 @@ func (app *app) handleRequest(w http.ResponseWriter, r *http.Request) {
 		response.Error = err.Error()
 		return
 	}
-
 	options := jsonrpc.Options{
 		UserId: uint(id),
 		Conn:   app.storage.GetDB(),
@@ -191,6 +198,9 @@ func (app *app) handleRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *app) authn(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", " GET, PUT, POST, DELETE, OPTIONS")
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -213,7 +223,7 @@ func (app *app) authn(w http.ResponseWriter, r *http.Request) {
 
 	cookie := &http.Cookie{
 		Name:  "user",
-		Value: strconv.Itoa(int(candidate.ID)),
+		Value: "8",
 		Path:  "/",
 	}
 	http.SetCookie(w, cookie)

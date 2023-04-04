@@ -2,6 +2,7 @@ package user
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"cmd/main/main.go/internal/entity/wallet"
 	"cmd/main/main.go/internal/jsonrpc"
@@ -11,7 +12,7 @@ import (
 
 type User struct {
 	gorm.Model
-	WalletID  uint          `json:"user_id"`
+	WalletID  uint          `json:"wallet_id"`
 	Wallet    wallet.Wallet `gorm:"foreignKey:WalletID"`
 	FirstName string        `json:"first_name"`
 	LastName  string        `json:"last_name"`
@@ -35,7 +36,8 @@ func (user *User) Register(conn *gorm.DB) error {
 
 func Get(opt jsonrpc.Options) (json.RawMessage, error) {
 	var user User
-	opt.Conn.First(&user, 1)
+	opt.Conn.First(&user, opt.UserId)
+	fmt.Println(opt.Params)
 	return json.Marshal(user)
 }
 
