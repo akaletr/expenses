@@ -25,12 +25,23 @@ func (user *User) Register(conn *gorm.DB) error {
 		if err != nil {
 			return err
 		}
+
+		u := User{
+			Model:     gorm.Model{},
+			WalletID:  1,
+			FirstName: "Dmitrii",
+			LastName:  "Poliakov",
+			Email:     "akaletr@gmail.com",
+		}
+
+		conn.Create(&u)
 	}
 
 	err := conn.Migrator().AutoMigrate(user)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

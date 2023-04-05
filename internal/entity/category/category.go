@@ -23,11 +23,28 @@ func (category *Category) Register(conn *gorm.DB) error {
 		if err != nil {
 			return err
 		}
+		c1 := Category{
+			Model:       gorm.Model{},
+			Title:       "Продукты",
+			Description: "Магазин, киоск",
+			UserID:      1,
+		}
+		c2 := Category{
+			Model:       gorm.Model{},
+			Title:       "Проезд",
+			Description: "Такси, Общественный транспорт",
+			UserID:      1,
+		}
+
+		conn.Create(&c1)
+		conn.Create(&c2)
 	}
+
 	err := conn.Migrator().AutoMigrate(category)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

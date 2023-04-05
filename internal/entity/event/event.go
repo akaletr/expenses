@@ -1,6 +1,7 @@
 package event
 
 import (
+	"cmd/main/main.go/internal/entity/wallet"
 	"encoding/json"
 	"fmt"
 
@@ -57,9 +58,16 @@ func Create(opt jsonrpc.Options) (json.RawMessage, error) {
 		return nil, err
 	}
 
+	var w wallet.Wallet
+	opt.Conn.First(&w, opt.UserId)
+
 	event.UserID = opt.UserId
 	fmt.Println(event.Sum)
 	opt.Conn.Create(&event)
+
+	s := w.Sum - event.Sum
+	opt.Conn.Model(&w).Where("id = ?", opt.UserId).Update("sum", s)
+
 	return json.Marshal(event.ID)
 }
 
