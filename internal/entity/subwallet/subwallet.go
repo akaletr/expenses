@@ -45,7 +45,7 @@ func (sw *SubWallet) Register(conn *gorm.DB) error {
 			Model:    gorm.Model{},
 			Name:     "ARS",
 			Currency: 1,
-			Sum:      100000,
+			Sum:      0,
 			WalletID: 1,
 		}
 

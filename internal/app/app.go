@@ -3,6 +3,7 @@ package app
 import (
 	"cmd/main/main.go/internal/actions"
 	"cmd/main/main.go/internal/entity/subwallet"
+	"cmd/main/main.go/internal/entity/transfer"
 	"cmd/main/main.go/internal/gziper"
 	"encoding/json"
 	"errors"
@@ -69,6 +70,7 @@ func (app *app) init() error {
 		&subwallet.SubWallet{},
 		&category.Category{},
 		&event.Event{},
+		&transfer.Transfer{},
 	)
 	if err != nil {
 		return err
@@ -98,6 +100,11 @@ func (app *app) init() error {
 	app.register("user.getMany", user.GetMany)
 	app.register("user.create", user.Create)
 	app.register("user.delete", user.Delete)
+
+	app.register("transfer.get", transfer.Get)
+	app.register("transfer.getMany", transfer.GetMany)
+	app.register("transfer.create", transfer.Create)
+	app.register("transfer.delete", transfer.Delete)
 
 	app.register("action.transfer", actions.Transfer)
 	app.register("action.event", actions.Event)

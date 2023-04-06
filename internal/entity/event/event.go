@@ -20,7 +20,7 @@ type Event struct {
 	UserID      uint                `json:"user_id"`
 	User        user.User           `gorm:"foreignKey:UserID"`
 	SubWalletID uint                `json:"sub_wallet_id"`
-	SubWallet   subwallet.SubWallet `gorm:"foreignKey:WalletID"`
+	SubWallet   subwallet.SubWallet `gorm:"foreignKey:SubWalletID"`
 	Description string              `json:"description"`
 	Sum         float64             `json:"sum"`
 }
