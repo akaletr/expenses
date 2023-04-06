@@ -1,12 +1,13 @@
 package event
 
 import (
-	"cmd/main/main.go/internal/entity/wallet"
+	"cmd/main/main.go/internal/entity/subwallet"
 	"encoding/json"
 	"fmt"
 
 	"cmd/main/main.go/internal/entity/category"
 	"cmd/main/main.go/internal/entity/user"
+	"cmd/main/main.go/internal/entity/wallet"
 	"cmd/main/main.go/internal/jsonrpc"
 
 	"gorm.io/gorm"
@@ -14,12 +15,14 @@ import (
 
 type Event struct {
 	gorm.Model
-	CategoryID  uint              `json:"category_id"`
-	Category    category.Category `gorm:"foreignKey:CategoryID"`
-	UserID      uint              `json:"user_id"`
-	User        user.User         `gorm:"foreignKey:UserID"`
-	Description string            `json:"description"`
-	Sum         int               `json:"sum"`
+	CategoryID  uint                `json:"category_id"`
+	Category    category.Category   `gorm:"foreignKey:CategoryID"`
+	UserID      uint                `json:"user_id"`
+	User        user.User           `gorm:"foreignKey:UserID"`
+	SubWalletID uint                `json:"sub_wallet_id"`
+	SubWallet   subwallet.SubWallet `gorm:"foreignKey:WalletID"`
+	Description string              `json:"description"`
+	Sum         float64             `json:"sum"`
 }
 
 func (event *Event) Register(conn *gorm.DB) error {

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"cmd/main/main.go/internal/entity/wallet"
 	"cmd/main/main.go/internal/jsonrpc"
 
 	"gorm.io/gorm"
@@ -12,11 +11,9 @@ import (
 
 type User struct {
 	gorm.Model
-	WalletID  uint          `json:"wallet_id"`
-	Wallet    wallet.Wallet `gorm:"foreignKey:WalletID"`
-	FirstName string        `json:"first_name"`
-	LastName  string        `json:"last_name"`
-	Email     string        `json:"email" gorm:"unique"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email" gorm:"unique"`
 }
 
 func (user *User) Register(conn *gorm.DB) error {
@@ -28,7 +25,6 @@ func (user *User) Register(conn *gorm.DB) error {
 
 		u := User{
 			Model:     gorm.Model{},
-			WalletID:  1,
 			FirstName: "Dmitrii",
 			LastName:  "Poliakov",
 			Email:     "akaletr@gmail.com",
