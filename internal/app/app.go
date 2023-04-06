@@ -1,6 +1,8 @@
 package app
 
 import (
+	"cmd/main/main.go/internal/actions"
+	"cmd/main/main.go/internal/entity/subwallet"
 	"cmd/main/main.go/internal/gziper"
 	"encoding/json"
 	"errors"
@@ -62,8 +64,9 @@ func (app *app) init() error {
 	}
 
 	err = app.storage.Register(
-		&wallet.Wallet{},
 		&user.User{},
+		&wallet.Wallet{},
+		&subwallet.SubWallet{},
 		&category.Category{},
 		&event.Event{},
 	)
@@ -86,10 +89,18 @@ func (app *app) init() error {
 	app.register("wallet.create", wallet.Create)
 	app.register("wallet.delete", wallet.Delete)
 
+	app.register("subwallet.get", subwallet.Get)
+	app.register("subwallet.getMany", subwallet.GetMany)
+	app.register("subwallet.create", subwallet.Create)
+	app.register("subwallet.delete", subwallet.Delete)
+
 	app.register("user.get", user.Get)
 	app.register("user.getMany", user.GetMany)
 	app.register("user.create", user.Create)
 	app.register("user.delete", user.Delete)
+
+	app.register("action.transfer", actions.Transfer)
+	app.register("action.event", actions.Event)
 
 	app.server = http.Server{
 		Addr:              fmt.Sprintf(":%s", app.cfg.ServerPort),
@@ -138,7 +149,6 @@ func (app *app) getMethod(name string) (jsonrpc.Method, error) {
 func (app *app) handleRequest(w http.ResponseWriter, r *http.Request) {
 	response := jsonrpc.Response{}
 
-	fmt.Println("sdklfjalsdkjf")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", " GET, PUT, POST, DELETE, OPTIONS")
 

@@ -1,7 +1,9 @@
 package wallet
 
 import (
+	"cmd/main/main.go/internal/entity/user"
 	"encoding/json"
+	"time"
 
 	"cmd/main/main.go/internal/jsonrpc"
 
@@ -18,9 +20,11 @@ const (
 
 type Wallet struct {
 	gorm.Model
-	Name     string   `json:"name"`
-	Currency Currency `json:"currency"`
-	Sum      int      `json:"sum"`
+	Name     string    `json:"name"`
+	Currency Currency  `json:"currency"`
+	Sum      float64   `json:"sum"`
+	UserID   uint      `json:"user_id"`
+	User     user.User `gorm:"foreignKey:UserID"`
 }
 
 func (wallet *Wallet) Register(conn *gorm.DB) error {
@@ -29,14 +33,16 @@ func (wallet *Wallet) Register(conn *gorm.DB) error {
 		if err != nil {
 			return err
 		}
-		w := Wallet{
+
+		w1 := Wallet{
 			Model:    gorm.Model{},
 			Name:     "Main",
 			Currency: 0,
-			Sum:      1000,
+			Sum:      1000 + 100000/384,
+			UserID:   1,
 		}
 
-		conn.Create(&w)
+		conn.Create(&w1)
 	}
 
 	err := conn.Migrator().AutoMigrate(wallet)
@@ -48,12 +54,13 @@ func (wallet *Wallet) Register(conn *gorm.DB) error {
 }
 
 func Get(opt jsonrpc.Options) (json.RawMessage, error) {
+	time.Sleep(time.Millisecond * 100)
 	var wallet Wallet
 	err := json.Unmarshal(opt.Params, &wallet)
 	if err != nil {
 		return nil, err
 	}
-	opt.Conn.First(&wallet, wallet.ID)
+	opt.Conn.Where("user_id = ?", 1).First(&wallet)
 	return json.Marshal(wallet)
 }
 
