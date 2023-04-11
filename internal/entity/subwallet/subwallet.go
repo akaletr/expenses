@@ -49,8 +49,17 @@ func (sw *SubWallet) Register(conn *gorm.DB) error {
 			WalletID: 1,
 		}
 
+		sw3 := SubWallet{
+			Model:    gorm.Model{},
+			Name:     "RUB",
+			Currency: 1,
+			Sum:      0,
+			WalletID: 1,
+		}
+
 		conn.Create(&sw1)
 		conn.Create(&sw2)
+		conn.Create(&sw3)
 	}
 
 	err := conn.Migrator().AutoMigrate(sw)

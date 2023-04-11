@@ -1,10 +1,10 @@
 package wallet
 
 import (
-	"cmd/main/main.go/internal/entity/user"
 	"encoding/json"
 	"time"
 
+	"cmd/main/main.go/internal/entity/user"
 	"cmd/main/main.go/internal/jsonrpc"
 
 	"gorm.io/gorm"
@@ -38,7 +38,7 @@ func (wallet *Wallet) Register(conn *gorm.DB) error {
 			Model:    gorm.Model{},
 			Name:     "Main",
 			Currency: 0,
-			Sum:      1000 + 100000/384,
+			Sum:      1000,
 			UserID:   1,
 		}
 

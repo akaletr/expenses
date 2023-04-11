@@ -36,8 +36,16 @@ func (category *Category) Register(conn *gorm.DB) error {
 			UserID:      1,
 		}
 
+		c3 := Category{
+			Model:       gorm.Model{},
+			Title:       "Прочее",
+			Description: "Разное",
+			UserID:      1,
+		}
+
 		conn.Create(&c1)
 		conn.Create(&c2)
+		conn.Create(&c3)
 	}
 
 	err := conn.Migrator().AutoMigrate(category)
