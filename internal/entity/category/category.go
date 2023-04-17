@@ -9,9 +9,17 @@ import (
 	"gorm.io/gorm"
 )
 
+type Action string
+
+const (
+	INCOME  Action = "income"
+	EXPENSE Action = "expense"
+)
+
 type Category struct {
 	gorm.Model
 	Title       string    `json:"title"`
+	Type        Action    `json:"type"`
 	Description string    `json:"description"`
 	UserID      uint      `json:"user_id"`
 	User        user.User `gorm:"foreignKey:UserID"`
@@ -26,12 +34,14 @@ func (category *Category) Register(conn *gorm.DB) error {
 		c1 := Category{
 			Model:       gorm.Model{},
 			Title:       "Продукты",
+			Type:        EXPENSE,
 			Description: "Магазин, киоск",
 			UserID:      1,
 		}
 		c2 := Category{
 			Model:       gorm.Model{},
 			Title:       "Проезд",
+			Type:        EXPENSE,
 			Description: "Такси, Общественный транспорт",
 			UserID:      1,
 		}
@@ -39,13 +49,23 @@ func (category *Category) Register(conn *gorm.DB) error {
 		c3 := Category{
 			Model:       gorm.Model{},
 			Title:       "Прочее",
+			Type:        EXPENSE,
 			Description: "Разное",
+			UserID:      1,
+		}
+
+		c4 := Category{
+			Model:       gorm.Model{},
+			Title:       "ЗП",
+			Type:        INCOME,
+			Description: "Зарплата",
 			UserID:      1,
 		}
 
 		conn.Create(&c1)
 		conn.Create(&c2)
 		conn.Create(&c3)
+		conn.Create(&c4)
 	}
 
 	err := conn.Migrator().AutoMigrate(category)

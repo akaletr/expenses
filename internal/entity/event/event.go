@@ -1,11 +1,10 @@
 package event
 
 import (
-	"cmd/main/main.go/internal/entity/subwallet"
 	"encoding/json"
-	"fmt"
 
 	"cmd/main/main.go/internal/entity/category"
+	"cmd/main/main.go/internal/entity/subwallet"
 	"cmd/main/main.go/internal/entity/user"
 	"cmd/main/main.go/internal/entity/wallet"
 	"cmd/main/main.go/internal/jsonrpc"
@@ -65,7 +64,6 @@ func Create(opt jsonrpc.Options) (json.RawMessage, error) {
 	opt.Conn.First(&w, opt.UserId)
 
 	event.UserID = opt.UserId
-	fmt.Println(event.Sum)
 	opt.Conn.Create(&event)
 
 	s := w.Sum - event.Sum

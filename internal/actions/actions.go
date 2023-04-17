@@ -7,8 +7,8 @@ import (
 	"cmd/main/main.go/internal/entity/wallet"
 	"cmd/main/main.go/internal/jsonrpc"
 	"encoding/json"
-	"fmt"
 	"gorm.io/gorm"
+	"time"
 )
 
 type TransferParams struct {
@@ -72,8 +72,6 @@ func Event(opt jsonrpc.Options) (json.RawMessage, error) {
 	walletSum := w.Sum
 	subWalletSum := subWalletFrom.Sum
 
-	fmt.Println(params.Sum)
-
 	for _, tr := range transfers {
 		switch {
 		case sum == 0:
@@ -107,4 +105,32 @@ func Event(opt jsonrpc.Options) (json.RawMessage, error) {
 	opt.Conn.Model(&subWalletFrom).Where("id = ?", subWalletFrom.ID).Update("sum", subWalletSum)
 
 	return json.Marshal("")
+}
+
+type Test struct {
+	CategoryID  uint      `json:"category_id"`
+	CreatedAt   time.Time `json:"created_at"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Sum         float64   `json:"sum"`
+	SubWallet   string    `json:"sub_wallet"`
+}
+
+func Events(opt jsonrpc.Options) (json.RawMessage, error) {
+	ev := event.Event{}
+	res := make([]Test, 0)
+
+	opt.Conn.Model(&ev).
+		Select("events.category_id, " +
+			"categories.title, " +
+			"events.created_at, " +
+			"events.description, " +
+			"events.sum," +
+			"sub_wallets.name as sub_wallet").
+		Joins("left join categories on categories.id = category_id").
+		Joins("left join sub_wallets on sub_wallets.id = sub_wallet_id").
+		Order("events.created_at").
+		Scan(&res)
+
+	return json.Marshal(res)
 }
