@@ -1,10 +1,8 @@
 package user
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"cmd/main/main.go/internal/jsonrpc"
+	"encoding/json"
 
 	"gorm.io/gorm"
 )
@@ -44,7 +42,6 @@ func (user *User) Register(conn *gorm.DB) error {
 func Get(opt jsonrpc.Options) (json.RawMessage, error) {
 	var user User
 	opt.Conn.First(&user, opt.UserId)
-	fmt.Println(opt.Params)
 	return json.Marshal(user)
 }
 

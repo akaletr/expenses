@@ -108,6 +108,7 @@ func (app *app) init() error {
 
 	app.register("action.transfer", actions.Transfer)
 	app.register("action.event", actions.Event)
+	app.register("action.events", actions.Events)
 
 	app.server = http.Server{
 		Addr:              fmt.Sprintf(":%s", app.cfg.ServerPort),

@@ -1,10 +1,10 @@
 package subwallet
 
 import (
-	"cmd/main/main.go/internal/entity/wallet"
 	"encoding/json"
 	"time"
 
+	"cmd/main/main.go/internal/entity/wallet"
 	"cmd/main/main.go/internal/jsonrpc"
 
 	"gorm.io/gorm"
@@ -82,6 +82,7 @@ func Get(opt jsonrpc.Options) (json.RawMessage, error) {
 
 func GetMany(opt jsonrpc.Options) (json.RawMessage, error) {
 	var sw []SubWallet
+
 	time.Sleep(time.Millisecond * 100)
 	type P struct {
 		WalletID int `json:"wallet_id"`
@@ -93,7 +94,7 @@ func GetMany(opt jsonrpc.Options) (json.RawMessage, error) {
 	if err != nil {
 		return nil, err
 	}
-	opt.Conn.Where("wallet_id = ?", p.WalletID).Find(&sw)
+	opt.Conn.Where("wallet_id = ?", p.WalletID).Order("id").Find(&sw)
 	return json.Marshal(sw)
 }
 
